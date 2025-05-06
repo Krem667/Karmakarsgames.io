@@ -2,20 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Flappy Bird</title>
   <style>
-    body { margin: 0; padding: 0; text-align: center; font-family: sans-serif; }
-    canvas { background: #70c5ce; display: block; margin: 0 auto; }
-    #ui { margin-top: 10px; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      text-align: center;
+      background: #70c5ce;
+      font-family: Arial, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: #70c5ce;
+    }
+
+    #ui {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+    }
+
     button {
       padding: 10px 20px;
       margin: 5px;
-      font-size: 16px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #fff;
       cursor: pointer;
     }
+
     .score-panel {
-      font-size: 20px;
+      font-size: 18px;
+      color: #fff;
     }
   </style>
 </head>
@@ -38,6 +65,9 @@
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+let w = window.innerWidth, h = window.innerHeight;
+canvas.width = w > 400 ? 400 : w;
+canvas.height = h > 600 ? 600 : h;
 
 const startBtn = document.getElementById("startBtn");
 const playAgainBtn = document.getElementById("playAgainBtn");
@@ -55,7 +85,7 @@ const pipeGap = 150;
 const pipeWidth = 60;
 
 function resetGame() {
-  bird = { x: 80, y: 200, width: 30, height: 30, velocity: 0 };
+  bird = { x: 80, y: canvas.height / 2, width: 30, height: 30, velocity: 0 };
   pipes = [];
   score = 0;
   frame = 0;
@@ -80,7 +110,6 @@ function createPipe() {
 function update() {
   frame++;
 
-  // Speed increases gradually after score > 30
   const baseSpeed = 2;
   const extraSpeed = score > 30 ? Math.min((score - 30) * 0.05, 3) : 0;
   const speed = baseSpeed + extraSpeed;
@@ -93,7 +122,6 @@ function update() {
   pipes.forEach(pipe => {
     pipe.x -= speed;
 
-    // Scoring
     if (!pipe.passed && pipe.x + pipeWidth < bird.x) {
       pipe.passed = true;
       score++;
@@ -104,7 +132,6 @@ function update() {
       }
     }
 
-    // Collision
     if (
       bird.x < pipe.x + pipeWidth &&
       bird.x + bird.width > pipe.x &&
@@ -116,7 +143,6 @@ function update() {
 
   pipes = pipes.filter(pipe => pipe.x + pipeWidth > 0);
 
-  // Hit ground or fly too high
   if (bird.y + bird.height > canvas.height || bird.y < 0) {
     gameOver();
   }
@@ -124,12 +150,9 @@ function update() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Draw bird
   ctx.fillStyle = "yellow";
   ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
 
-  // Draw pipes
   ctx.fillStyle = "green";
   pipes.forEach(pipe => {
     ctx.fillRect(pipe.x, 0, pipeWidth, pipe.top);
@@ -151,18 +174,23 @@ function gameOver() {
   playAgainBtn.style.display = "inline-block";
 }
 
+function resizeCanvas() {
+  const w = window.innerWidth, h = window.innerHeight;
+  canvas.width = w > 400 ? 400 : w;
+  canvas.height = h > 600 ? 600 : h;
+}
+
+window.addEventListener("resize", resizeCanvas);
 canvas.addEventListener("click", flapBird);
-document.addEventListener("keydown", e => {
-  if (e.code === "Space") flapBird();
-});
+canvas.addEventListener("touchstart", e => { e.preventDefault(); flapBird(); });
+document.addEventListener("keydown", e => { if (e.code === "Space") flapBird(); });
 
 startBtn.addEventListener("click", resetGame);
 playAgainBtn.addEventListener("click", resetGame);
 
-// Initial text
 ctx.fillStyle = "#000";
 ctx.font = "24px sans-serif";
-ctx.fillText("Click Start to Play", 100, canvas.height / 2);
+ctx.fillText("Click Start to Play", 80, canvas.height / 2);
 </script>
 
 </body>
